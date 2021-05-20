@@ -1,2 +1,4 @@
 Django~=2.2.23
 Djongo~=1.3
+djangorestframework-3.12.
+rest_framework

@@ -1,6 +1,8 @@
 from django.db import models
 from djongo import models
 import uuid
+import datetime
+from django.utils import timezone
 from django.core.exceptions import ValidationError
 
 # Create your models here.
@@ -89,6 +91,14 @@ RELIGION = (
     ('AG', 'Agnostic')
 )
 
+CONTACT_POINT_SYS = (
+    ('phone', 'phone'),
+    ('fax', 'fax'),
+    ('email', 'E-mail'),
+    ('url', 'url'),
+    ('sms', 'sms')
+)
+
 
 class HumanName(models.Model):
     text = models.CharField('full name', max_length=100)
@@ -131,10 +141,29 @@ class Address(models.Model):
         abstract = True
 
 
+class ContactPoint(models.Model):
+    system = models.CharField(max_length=5, choices=CONTACT_POINT_SYS)
+    value = models.CharField(max_length=255)
+    use = models.CharField(max_length=1, choices=ADDRESS_USE)
+    type = models.CharField(max_length=2, choices=ADDRESS_TYPE)
+    rank = models.PositiveSmallIntegerField()
+
+    class Meta:
+        abstract = True
+
+
+class Communication(models.Model):
+    language = models.CharField(max_length=3)
+    preferred = models.BooleanField(default=0)
+
+    class Meta:
+        abstract = True
+
+
 class Metadata(models.Model):
-    author = models.CharField()
-    pub_date = models.DateTimeField()
-    mod_date = models.DateField()
+    author = models.CharField(null=True)
+    pub_date = models.DateTimeField(default=datetime.datetime.now(), null=True)
+    mod_date = models.DateField(default=datetime.datetime.now(), null=True)
 
     class Meta:
         abstract = True
@@ -142,8 +171,10 @@ class Metadata(models.Model):
 
 class Person(models.Model):
     _id = models.ObjectIdField()
-    humanname = models.EmbeddedField(model_container=HumanName)
+    humanname = models.EmbeddedField(model_container=HumanName, null=True)
+    identification = models.EmbeddedField(model_container=Identification)
     address = models.EmbeddedField(model_container=Address)
+    contactpoint = models.EmbeddedField(model_container=ContactPoint)
     active = models.BooleanField(default=1)
     sex = models.CharField(max_length=1, choices=SEX)
     gender = models.CharField(max_length=1, choices=GENDER)
@@ -152,4 +183,5 @@ class Person(models.Model):
     maritalStatus = models.CharField('marital status', max_length=1, choices=MARITAL_STATUS)
     ethnicity = models.CharField(max_length=2, choices=ETHNICITY)
     religion = models.CharField(max_length=2, choices=RELIGION)
+    communication = models.EmbeddedField(model_container=Communication)
     metadata = models.EmbeddedField(model_container=Metadata, null=True)
