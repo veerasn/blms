@@ -185,3 +185,11 @@ class Person(models.Model):
     religion = models.CharField(max_length=2, choices=RELIGION)
     communication = models.EmbeddedField(model_container=Communication)
     metadata = models.EmbeddedField(model_container=Metadata, null=True)
+
+
+class DiagnosticOrder(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    orderNum = models.CharField(max_length=16)
+
+    class Meta:
+        ordering = ['created']
