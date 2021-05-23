@@ -1,5 +1,4 @@
 from django.db import models
-from djongo import models
 import uuid
 import datetime
 from django.utils import timezone
@@ -100,7 +99,9 @@ CONTACT_POINT_SYS = (
 )
 
 
-class HumanName(models.Model):
+class Person(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created = models.DateTimeField(auto_now_add=True)
     text = models.CharField('full name', max_length=100)
     family = models.CharField('family or last name', max_length=60, null=True)
     given = models.CharField('given or first name', max_length=60, null=True)
@@ -108,9 +109,17 @@ class HumanName(models.Model):
     prefix = models.CharField('salutations or honorifics', max_length=20, null=True)
     suffix = models.CharField(max_length=20, null=True)
     use = models.CharField(max_length=2, choices=NAME_USE)
+    active = models.BooleanField(default=1)
+    sex = models.CharField(max_length=1, choices=SEX)
+    gender = models.CharField(max_length=1, choices=GENDER, null=True)
+    birthDate = models.DateField('date of birth')
+    deceasedDate = models.DateField('deceased date', null=True)
+    maritalStatus = models.CharField('marital status', max_length=1, choices=MARITAL_STATUS, null=True)
+    ethnicity = models.CharField(max_length=2, choices=ETHNICITY, null=True)
+    religion = models.CharField(max_length=2, choices=RELIGION, null=True)
 
     class Meta:
-        abstract = True
+        ordering = ['created']
 
     def __str__(self):
         return self.text
@@ -119,9 +128,7 @@ class HumanName(models.Model):
 class Identification(models.Model):
     idValue = models.CharField(max_length=30)
     idType = models.CharField(max_length=5, choices=ID_TYPE)
-
-    class Meta:
-        abstract = True
+    person = models.ForeignKey(Person, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.idValue
@@ -136,9 +143,13 @@ class Address(models.Model):
     state = models.CharField(max_length=5)
     postalCode = models.CharField('post code', max_length=5)
     country = models.CharField(max_length=2, default='MY')
+    person = models.ForeignKey(Person, on_delete=models.CASCADE)
 
-    class Meta:
-        abstract = True
+
+class Communication(models.Model):
+    language = models.CharField(max_length=3)
+    preferred = models.BooleanField(default=0)
+    person = models.ForeignKey(Person, on_delete=models.CASCADE)
 
 
 class ContactPoint(models.Model):
@@ -147,49 +158,5 @@ class ContactPoint(models.Model):
     use = models.CharField(max_length=1, choices=ADDRESS_USE)
     type = models.CharField(max_length=2, choices=ADDRESS_TYPE)
     rank = models.PositiveSmallIntegerField()
+    person = models.ForeignKey(Person, on_delete=models.CASCADE)
 
-    class Meta:
-        abstract = True
-
-
-class Communication(models.Model):
-    language = models.CharField(max_length=3)
-    preferred = models.BooleanField(default=0)
-
-    class Meta:
-        abstract = True
-
-
-class Metadata(models.Model):
-    author = models.CharField(null=True)
-    pub_date = models.DateTimeField(default=datetime.datetime.now(), null=True)
-    mod_date = models.DateField(default=datetime.datetime.now(), null=True)
-
-    class Meta:
-        abstract = True
-
-
-class Person(models.Model):
-    _id = models.ObjectIdField()
-    humanname = models.EmbeddedField(model_container=HumanName, null=True)
-    identification = models.EmbeddedField(model_container=Identification)
-    address = models.EmbeddedField(model_container=Address)
-    contactpoint = models.EmbeddedField(model_container=ContactPoint)
-    active = models.BooleanField(default=1)
-    sex = models.CharField(max_length=1, choices=SEX)
-    gender = models.CharField(max_length=1, choices=GENDER)
-    birthDate = models.DateField('date of birth')
-    deceasedDate = models.DateField('deceased date', null=True)
-    maritalStatus = models.CharField('marital status', max_length=1, choices=MARITAL_STATUS)
-    ethnicity = models.CharField(max_length=2, choices=ETHNICITY)
-    religion = models.CharField(max_length=2, choices=RELIGION)
-    communication = models.EmbeddedField(model_container=Communication)
-    metadata = models.EmbeddedField(model_container=Metadata, null=True)
-
-
-class DiagnosticOrder(models.Model):
-    created = models.DateTimeField(auto_now_add=True)
-    orderNum = models.CharField(max_length=16)
-
-    class Meta:
-        ordering = ['created']
