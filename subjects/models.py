@@ -100,23 +100,24 @@ CONTACT_POINT_SYS = (
 
 
 class Person(models.Model):
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created = models.DateTimeField(auto_now_add=True)
     text = models.CharField('full name', max_length=100)
-    family = models.CharField('family or last name', max_length=60, null=True)
-    given = models.CharField('given or first name', max_length=60, null=True)
-    middle = models.CharField('middle name', max_length=60, null=True)
-    prefix = models.CharField('salutations or honorifics', max_length=20, null=True)
-    suffix = models.CharField(max_length=20, null=True)
+    family = models.CharField('family or last name', max_length=60, null=True, blank=True)
+    given = models.CharField('given or first name', max_length=60, null=True, blank=True)
+    middle = models.CharField('middle name', max_length=60, null=True, blank=True)
+    prefix = models.CharField('salutations or honorifics', max_length=20, null=True, blank=True)
+    suffix = models.CharField(max_length=20, null=True, blank=True)
     use = models.CharField(max_length=2, choices=NAME_USE)
     active = models.BooleanField(default=1)
     sex = models.CharField(max_length=1, choices=SEX)
-    gender = models.CharField(max_length=1, choices=GENDER, null=True)
+    gender = models.CharField(max_length=1, choices=GENDER, null=True, blank=True)
     birthDate = models.DateField('date of birth')
-    deceasedDate = models.DateField('deceased date', null=True)
-    maritalStatus = models.CharField('marital status', max_length=1, choices=MARITAL_STATUS, null=True)
-    ethnicity = models.CharField(max_length=2, choices=ETHNICITY, null=True)
-    religion = models.CharField(max_length=2, choices=RELIGION, null=True)
+    deceasedDate = models.DateField('deceased date', null=True, blank=True)
+    maritalStatus = models.CharField('marital status', max_length=1, choices=MARITAL_STATUS, null=True, blank=True)
+    ethnicity = models.CharField(max_length=2, choices=ETHNICITY, null=True, blank=True)
+    religion = models.CharField(max_length=2, choices=RELIGION, null=True, blank=True)
 
     class Meta:
         ordering = ['created']

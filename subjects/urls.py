@@ -9,8 +9,8 @@ router.register(r'identification', views.IdentificationViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('persons/', views.person_list),
-    path('persons/<pk>/', views.person_detail),
+    path('persons/', views.PersonList.as_view()),
+    path('persons/<pk>/', views.PersonDetail.as_view()),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]
 
