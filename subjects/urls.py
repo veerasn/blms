@@ -11,7 +11,11 @@ urlpatterns = [
     path('', include(router.urls)),
     path('persons/', views.PersonList.as_view()),
     path('persons/<pk>/', views.PersonDetail.as_view()),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+
+    path('api/subjects/', views.person_list),
+    path('api/subjects/add/', views.person_list),
+    path('api/subjects/<pk>/', views.person_detail),
 ]
 
 # urlpatterns = format_suffix_patterns(urlpatterns)
