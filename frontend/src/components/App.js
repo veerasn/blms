@@ -38,6 +38,11 @@ class App extends Component {
           return (
             <li key={person.id}>
               {person.text} - {person.sex}
+              <ul>
+                {person.identifications.map((subitem) =>
+                <li>{subitem.idType}:  {subitem.idValue}</li>
+                )}
+              </ul>
             </li>
           );
         })}

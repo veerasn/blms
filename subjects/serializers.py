@@ -3,9 +3,10 @@ from .models import Person, Address, Communication, ContactPoint, Identification
 
 
 class IdentificationSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Identification
-        fields = ['idValue', 'idType']
+        fields = ('id', 'idValue', 'idType', 'person')
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -28,7 +29,11 @@ class ContactPointSerializer(serializers.ModelSerializer):
 
 class PersonSerializer(serializers.ModelSerializer):
 
+    identifications = IdentificationSerializer(many=True, read_only=True)
+
     class Meta:
         model = Person
-        fields = '__all__'
+        fields = ['id', 'text', 'family', 'given', 'middle', 'prefix', 'suffix', 'use',
+                  'active', 'sex', 'gender', 'birthDate', 'deceasedDate', 'maritalStatus',
+                  'ethnicity', 'religion', 'identifications']
 
