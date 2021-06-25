@@ -42,7 +42,8 @@ class PatientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Patient
-        fields = ['names', 'identifications', 'sex', 'gender', 'birthDate', 'deceasedDate', 'maritalStatus',
+        fields = ['pk', 'names', 'identifications', 'addresses', 'contactPoints', 'sex', 'gender', 'birthDate',
+                  'deceasedDate', 'maritalStatus',
                   'ethnicity', 'religion']
 
 
@@ -50,9 +51,11 @@ class PatientNestedSerializer(WritableNestedModelSerializer):
 
     names = NameSerializer(many=True)
     identifications = IdentificationSerializer(many=True)
+    addresses = AddressSerializer(many=True)
 
     class Meta:
         model = Patient
-        fields = ['pk', 'names', 'identifications', 'sex', 'gender', 'birthDate', 'deceasedDate', 'maritalStatus',
+        fields = ['pk', 'names', 'identifications', 'addresses', 'sex', 'gender', 'birthDate',
+                  'deceasedDate', 'maritalStatus',
                   'ethnicity', 'religion']
 

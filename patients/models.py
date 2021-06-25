@@ -86,7 +86,7 @@ class Name(models.Model):
     )
 
     created = models.DateTimeField(auto_now_add=True)
-    text = models.CharField('full name', max_length=100)
+    text = models.CharField('full name', max_length=100, db_index=True)
     family = models.CharField('family or last name', max_length=60, null=True, blank=True)
     given = models.CharField('given or first name', max_length=60, null=True, blank=True)
     middle = models.CharField('middle name', max_length=60, null=True, blank=True)
@@ -134,10 +134,10 @@ class Address(models.Model):
     use = models.CharField(max_length=1, choices=ADDRESS_USE)
     type = models.CharField(max_length=2, choices=ADDRESS_TYPE)
     text = models.CharField('address', max_length=255)
-    city = models.CharField(max_length=5)
-    district = models.CharField(max_length=5)
-    state = models.CharField(max_length=5)
-    postalCode = models.CharField('post code', max_length=5)
+    city = models.CharField(max_length=25)
+    district = models.CharField(max_length=25)
+    state = models.CharField(max_length=25)
+    postalCode = models.CharField('post code', max_length=12)
     country = models.CharField(max_length=2, default='MY')
     patient = models.ForeignKey(Patient, related_name='addresses', on_delete=models.CASCADE)
 
@@ -165,7 +165,7 @@ class ContactPoint(models.Model):
         ('B', 'billing')
     )
 
-    system = models.CharField(max_length=5, choices=CONTACT_POINT_SYS)
+    system = models.CharField(max_length=12, choices=CONTACT_POINT_SYS)
     value = models.CharField(max_length=255)
     use = models.CharField(max_length=1, choices=SYS_USE)
     rank = models.PositiveSmallIntegerField()

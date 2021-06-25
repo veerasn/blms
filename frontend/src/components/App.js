@@ -12,7 +12,7 @@ class App extends Component {
   }
 
   componentDidMount() {
-    fetch("persons/")
+    fetch("patient/")
       .then(response => {
         if (response.status > 400) {
           return this.setState(() => {
@@ -34,12 +34,12 @@ class App extends Component {
   render() {
     return (
       <ul>
-        {this.state.data.map(person => {
+        {this.state.data.map(patient => {
           return (
-            <li key={person.id}>
-              {person.text} - {person.sex}
+            <li key={patient.id}>
+              {patient.sex} - {patient.birthDate}
               <ul>
-                {person.identifications.map((subitem) =>
+                {patient.identifications.map((subitem) =>
                 <li>{subitem.idType}:  {subitem.idValue}</li>
                 )}
               </ul>
