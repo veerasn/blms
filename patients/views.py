@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 
 from .models import Patient
 from .serializers import PatientSerializer, PatientNestedSerializer
@@ -7,7 +7,7 @@ from .serializers import PatientSerializer, PatientNestedSerializer
 # Create your views here.
 
 
-class PatientViewSet(viewsets.ModelViewSet):
+class PatientViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
 
     queryset = Patient.objects.all()
     serializer_class = PatientNestedSerializer

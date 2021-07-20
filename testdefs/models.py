@@ -11,51 +11,68 @@ class SourceOrganization(models.Model):
     url = models.TextField
 
 
+class TestDef(models.Model):
+    loinc_num = models.CharField(max_length=10, primary_key=True)
+    component = models.CharField(max_length=255)
+    long_common_name = models.CharField(max_length=255)
+    composition = models.ManyToManyField('self', through='TestComposition', symmetrical=False)
+
+
+class TestComposition(models.Model):
+    from_test_def = models.ForeignKey(TestDef, related_name='from_test_defs', on_delete=models.PROTECT)
+    to_test_def = models.ForeignKey(TestDef, related_name='to_test_defs', on_delete=models.PROTECT)
+    primaryTest = models.BooleanField(default=True)
+    orderable = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('from_test_def', 'to_test_def')
+
+
 class Loinc(models.Model):
     loinc_num = models.CharField(max_length=10, primary_key=True)
     component = models.CharField(max_length=255)
-    property = models.CharField(max_length=255)
-    time_aspct = models.CharField(max_length=255)
+    property = models.CharField(max_length=64)
+    time_aspct = models.CharField(max_length=32)
     system = models.CharField(max_length=255)
-    scale_typ = models.CharField(max_length=255)
-    method_typ = models.CharField(max_length=255)
-    class_type = models.CharField(max_length=255)
-    VersionLastChanged = models.CharField(max_length=255)
-    chng_type = models.CharField(max_length=255)
-    DefinitionDescription = models.TextField
-    status = models.CharField(max_length=255)
+    scale_typ = models.CharField(max_length=8)
+    method_typ = models.CharField(max_length=64)
+    classname = models.CharField(max_length=32)
+    VersionLastChanged = models.CharField(max_length=8)
+    chng_type = models.CharField(max_length=8)
+    DefinitionDescription = models.CharField(max_length=6000, null=True)
+    status = models.CharField(max_length=12)
     consumer_name = models.CharField(max_length=255)
     class_type = models.IntegerField
-    formula = models.TextField
-    exmpl_answers = models.TextField
-    survey_quest_text = models.TextField
-    survey_quest_src = models.CharField(max_length=50)
+    formula = models.CharField(max_length=512, null=True)
+    exmpl_answers = models.CharField(max_length=6000, null=True)
+    survey_quest_text = models.CharField(max_length=512, null=True)
+    survey_quest_src = models.CharField(max_length=64)
     unitsRequired = models.CharField(max_length=1)
-    submitted_units = models.CharField(max_length=30)
-    relatednames2 = models.TextField
-    shortname = models.CharField(max_length=255)
-    order_obs = models.CharField(max_length=15)
+    submitted_units = models.CharField(max_length=32)
+    relatednames2 = models.CharField(max_length=6000, null=True)
+    shortname = models.CharField(max_length=128)
+    order_obs = models.CharField(max_length=12)
     cdisc_common_tests = models.CharField(max_length=1)
-    hl7_field_subfield_id = models.CharField(max_length=50)
-    external_copyright_notice = models.TextField
-    example_units = models.CharField(max_length=255)
+    hl7_field_subfield_id = models.CharField(max_length=16)
+    external_copyright_notice = models.CharField(max_length=3000, null=True)
+    example_units = models.CharField(max_length=128)
     long_common_name = models.CharField(max_length=255)
-    UnitsAndRange = models.TextField
-    example_ucum_units = models.CharField(max_length=255)
-    example_si_ucum_units = models.CharField(max_length=255)
-    status_reason = models.CharField(max_length=9)
-    status_text = models.TextField
-    change_reason_public = models.TextField
+    UnitsAndRange = models.CharField(max_length=32, null=True)
+    example_ucum_units = models.CharField(max_length=40)
+    example_si_ucum_units = models.CharField(max_length=40)
+    status_reason = models.CharField(max_length=12)
+    status_text = models.CharField(max_length=800, null=True)
+    change_reason_public = models.CharField(max_length=1500, null=True)
     common_test_rank = models.IntegerField
     common_order_rank = models.IntegerField
     common_si_test_rank = models.IntegerField
     hl7_attachment_structure = models.CharField(max_length=15)
-    ExternalCopyrightLink = models.CharField(max_length=255, null=True)
-    PanelType = models.CharField(max_length=50)
-    AskAtOrderEntry = models.CharField(max_length=255)
-    AssociatedObservations = models.CharField(max_length=255)
-    VersionFirstReleased = models.CharField(max_length=255)
-    ValidHL7AttachmentRequest = models.CharField(max_length=50)
+    ExternalCopyrightLink = models.CharField(max_length=25, null=True)
+    PanelType = models.CharField(max_length=25)
+    AskAtOrderEntry = models.CharField(max_length=16)
+    AssociatedObservations = models.CharField(max_length=64)
+    VersionFirstReleased = models.CharField(max_length=8)
+    ValidHL7AttachmentRequest = models.CharField(max_length=1)
     DisplayName = models.CharField(max_length=255)
 
     def __str__(self):
