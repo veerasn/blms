@@ -1,7 +1,7 @@
 from django.db import models
 from patients.models import Patient
 from subjects.models import Practitioner
-from testdefs.models import LocalTestCode
+from testdefinitions.models import TestDef
 
 
 # Create your models here.

@@ -23,5 +23,6 @@ urlpatterns = [
     path('', include('frontend.urls')),
     path('', include('subjects.urls')),
     path('', include('patients.urls')),
+    path('', include('testdefinitions.urls')),
     path('', include('scratchpad.urls')),
 ]

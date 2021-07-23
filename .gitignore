@@ -28,4 +28,5 @@ chrome-user-data
 *.swp
 *.swo
 */migrations/*
+testdefs/migrations/*
 !*/migrations/__init__.py
