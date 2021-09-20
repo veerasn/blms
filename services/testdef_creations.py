@@ -1,7 +1,6 @@
 #!/usr/bin/env python 3.9
 
 from testdefinitions.models import Loinc, TestDef, TestComposition
-from patients.models import Patient
 
 
 def create_profile():
@@ -109,3 +108,33 @@ def create_profile():
 
     return x
 
+
+class UpdateJson:
+    """This class contains a collection of functions that create, update or delete  json fields in the TestDef table
+    based on the loinc code provided."""
+
+    def __init__(self, loinc):
+        self.loinc = loinc
+        self.td = TestDef.objects.get(loinc_num=self.loinc)
+
+    def add_category(self, key, value='yes', category='roles', permission='allow'):
+        """This function takes the argument permission (allow/restrict) for each category (sex, roles, specialties,
+        locations) and applies a condition specific (e.g. key = 'doctor'), to that category.
+        Default arguments: value='yes' (options: 'yes', 'no', 'cond'), category='roles'(options: 'roles', 'locations',
+        'sex', permission='allow' (options: 'allow', 'restrict').
+        Function should normally be triggered through the Test Definition UI"""
+        self.td.orderValidation[permission][category][key] = value
+        self.td.save()
+
+        return self.td.orderValidation[permission][category]
+
+    def add_ageinterval(self, age=999, option='max', text = 'years', permission='allow'):
+        """This function takes the argument permission (allow/restrict) for a max/min age interval and applies an age
+        criteria specific to it. age should be a positive integer.
+        Default arguments: option='max' (options: 'max', 'min'), text='years'(options: 'years', 'months', 'days')
+        permission='allow' (options: 'allow', 'restrict').
+        Function should normally be triggered through the Test Definition UI"""
+        self.td.orderValidation[permission]['age'][option] = [age, text]
+        self.td.save()
+
+        return self.td.orderValidation[permission]['age']
