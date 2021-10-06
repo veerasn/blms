@@ -133,11 +133,11 @@ class Address(models.Model):
 
     use = models.CharField(max_length=1, choices=ADDRESS_USE)
     type = models.CharField(max_length=2, choices=ADDRESS_TYPE)
-    text = models.CharField('address', max_length=255)
+    text = models.CharField('address', max_length=1000)
     city = models.CharField(max_length=25)
-    district = models.CharField(max_length=25)
+    district = models.CharField(max_length=25, null=True)
     state = models.CharField(max_length=25)
-    postalCode = models.CharField('post code', max_length=12)
+    postalCode = models.CharField('post code', default='00000', max_length=12)
     country = models.CharField(max_length=2, default='MY')
     patient = models.ForeignKey(Patient, related_name='addresses', on_delete=models.CASCADE)
 

@@ -103,6 +103,9 @@ class TestDef(models.Model):
     specimenQuantity = JSONField(null=True)
     composition = models.ManyToManyField('self', through='TestComposition', symmetrical=False)
 
+    def __str__(self):
+        return self.loinc_num + ' - ' + self.shortname
+
 
 class TestComposition(models.Model):
     from_test_def = models.ForeignKey(TestDef, related_name='from_test_defs', on_delete=models.PROTECT)
@@ -114,76 +117,221 @@ class TestComposition(models.Model):
         unique_together = ('from_test_def', 'to_test_def')
 
 
+class Specimen(models.Model):
+    TYPE = (
+        ('Aspirate', 'Aspirate'),
+        ('Blood', 'Blood'),
+        ('Body submitted for autopsy', 'Body submitted for autopsy'),
+        ('Bone marrow', 'Bone marrow'),
+        ('Condition', 'Condition'),
+        ('Condition, Fluid/Tissue', 'Condition, Fluid/Tissue'),
+        ('Conditions', 'Conditions'),
+        ('Device', 'Device'),
+        ('Environment', 'Environment'),
+        ('Fluid', 'Fluid'),
+        ('Fluid/Secretion', 'Fluid/Secretion'),
+        ('Fluid/Tissue', 'Fluid/Tissue'),
+        ('Food specimen', 'Food specimen'),
+        ('Forensic and possibly chemistry testing', 'Forensic and possibly chemistry testing'),
+        ('Gas', 'Gas'),
+        ('Lavage', 'Lavage'),
+        ('Milk specimen','Milk specimen'),
+        ('Object', 'Object'),
+        ('Others', 'Others'),
+        ('Product', 'Product'),
+        ('Site', 'Site'),
+        ('Sputum', 'Sputum'),
+        ('Stool', 'Stool'),
+        ('Tissue', 'Tissue'),
+        ('Transfusion', 'Transfusion'),
+        ('Urine', 'Urine'),
+    )
+
+    type = models.CharField(max_length=45, choices=TYPE)  # type of sample e.g. blood, tissue
+    code = models.CharField(max_length=8, unique=True)
+    display = models.CharField(max_length=45)
+    patientPreparation = models.TextField(null=True)  # patient preparation instructions for collection
+    collectionProcedure = models.TextField(null=True)  # specimen collection procedure
+    requirement = models.TextField(null=True)
+    rejectionCriterion = JSONField(default=dict, null=True)
+    handling = JSONField(default=dict, null=True)
+    typesTested = models.ManyToManyField(TestDef, through='TypeTested', through_fields=('specimen', 'testDef'))
+    isDerived = models.ForeignKey('self', null=True, on_delete=models.CASCADE)  # primary or secondary specimen
+
+
 class TypeTested(models.Model):
     PREFERENCE = (
         ('preferred', 'Preferred'),
         ('alternative', 'Alternative'),
     )
 
-    isDerived = models.BooleanField(default=False)  # primary or secondary specimen
-    type = models.CharField(max_length=8)  # type of sample e.g. serum, whole blood
-    preference = models.CharField(max_length=15, choices=PREFERENCE)
-    patientPreparation = models.TextField(null=True)  # patient preparation instructions for collection
-    collectionProcedure = models.TextField(null=True)  # specimen collection procedure
-    requirement = models.TextField()
-    retentionTime = JSONField()
-    rejectionCriterion = JSONField()
-    handling = JSONField()
-    test = models.ForeignKey(TestDef, related_name='types_tested', on_delete=models.CASCADE)
+    testDef = models.ForeignKey(TestDef, on_delete=models.CASCADE)
+    specimen = models.ForeignKey(Specimen, on_delete=models.CASCADE)
+    site = models.CharField(max_length=12, null=True)
+    procedure = models.CharField(max_length=12, null=True)
+    preference = models.CharField(max_length=15, choices=PREFERENCE, null=True)
+    retentionTime = JSONField(default=dict)
+
+    class Meta:
+        unique_together = ('testDef', 'specimen')
 
 
-class SpecimenContainerLookup(models.Model):
+class SpecimenContainer(models.Model):
     MATERIAL = (
         ('glass', 'Glass'),
         ('metal', 'Metal'),
         ('plastic', 'Plastic'),
+        ('na', 'not applicable'),
+    )
+
+    TYPE = (
+        ('Acid Citrate Dextrose (ACD) ', 'Acid Citrate Dextrose (ACD) '),
+        ('BD BBL CultureSwab EZ', 'BD BBL CultureSwab EZ'),
+        ('BD CultureSwab Plus system', 'BD CultureSwab Plus system'),
+        ('BD CultureSwab system', 'BD CultureSwab system'),
+        ('Blood Culture', 'Blood Culture'),
+        ('Citrate tubes ', 'Citrate tubes '),
+        ('CultureSwab system', 'CultureSwab system'),
+        ('EDTA tubes ', 'EDTA tubes '),
+        ('Fluoride tubes ', 'Fluoride tubes '),
+        ('Fluoride tubes for blood alcohol testing ', 'Fluoride tubes for blood alcohol testing '),
+        ('Heparin tubes ', 'Heparin tubes '),
+        ('Lead testing tubes ', 'Lead testing tubes '),
+        ('Microtainer', 'Microtainer'),
+        ('No additive tube for discard', 'No additive tube for discard'),
+        ('PST tubes ', 'PST tubes '),
+        ('RST tube ', 'RST tube '),
+        ('Sedimentation Rate Determination (SRD) ', 'Sedimentation Rate Determination (SRD) '),
+        ('Serum tubes ', 'Serum tubes '),
+        ('Sodium citrate tubes ', 'Sodium citrate tubes '),
+        ('Sodium Polyanetholesulfonate (SPS) ', 'Sodium Polyanetholesulfonate (SPS) '),
+        ('SST tubes ', 'SST tubes '),
+        ('Sterile exterior pouch', 'Sterile exterior pouch'),
+        ('Swab', 'Swab'),
+        ('Trace element ', 'Trace element '),
+        ('Urine container', 'Urine container'),
+        ('Viral Transport', 'Viral Transport'),
     )
 
     CAP = (
-        ('red', 'red cap'),
-        ('yellow', 'yellow cap'),
-        ('dark-yellow', 'dark yellow cap'),
-        ('grey', 'grey cap'),
-        ('light-blue', 'light blue cap'),
-        ('black', 'black cap'),
-        ('green', 'green cap'),
-        ('light-green', 'light green cap'),
-        ('lavender', 'lavender cap'),
-        ('brown', 'brown cap'),
-        ('white', 'white cap'),
-        ('pink', 'pink cap'),
+        ('Black/H', 'Black-Hemogard'),
+        ('Clear/H', 'Clear-Hemogard'),
+        ('Clear/Red/H', 'Clear/Red-Hemogard'),
+        ('Gold', 'Gold'),
+        ('Gold/H', 'Gold-Hemogard'),
+        ('Gray/C', 'Gray-Conventional'),
+        ('Gray/H', 'Gray-Hemogard'),
+        ('Green', 'Green'),
+        ('Green-Gray/C', 'Green-Gray-Conventional'),
+        ('Green/C', 'Green-Conventional'),
+        ('Green/H', 'Green-Hemogard'),
+        ('Grey', 'Grey'),
+        ('Lavender', 'Lavender'),
+        ('Lavender/C', 'Lavender-Conventional'),
+        ('Lavender/H', 'Lavender-Hemogard'),
+        ('Light blue/H', 'Light blue-Hemogard'),
+        ('Light gray/H', 'Light gray-Hemogard'),
+        ('Light green/H', 'Light green-Hemogard'),
+        ('Mint green', 'Mint green'),
+        ('na', 'not applicable'),
+        ('Orange/H', 'Orange-Hemogard'),
+        ('Pink/C', 'Pink-Conventional'),
+        ('Pink/H', 'Pink-Hemogard'),
+        ('Red', 'Red'),
+        ('Red-Gray/C', 'Red-Gray-Conventional'),
+        ('Red-Light Gray/C', 'Red-Light Gray-Conventional'),
+        ('Red-silicon coated/Lavender-K3 EDTA/C', 'Red-silicon coated/Lavender-K3 EDTA-Conventional'),
+        ('Red/C', 'Red-Conventional'),
+        ('Red/H', 'Red-Hemogard'),
+        ('Red/Yellow/C', 'Red/Yellow-Conventional'),
+        ('Royal Blue', 'Royal Blue'),
+        ('Tan/H', 'Tan-Hemogard'),
+        ('Yellow/C', 'Yellow-Conventional'),
+        ('Yellow/H', 'Yellow-Hemogard'),
     )
 
-    code = models.CharField(max_length=12)
-    material = models.CharField(max_length=12, choices=MATERIAL)
-    description = models.TextField(max_length=255)
-    type = models.TextField(max_length=255)
-    cap = models.CharField(max_length=25, choices=CAP, default='')
-    capacity = models.PositiveIntegerField
-    minimumVolume = JSONField()
-    age = JSONField()
-    note = models.TextField(blank=True, default='')
+    ADDITIVE = (
+        ('acid citrate dextrose', 'acid citrate dextrose'),
+        ('Boric acid, sodium formate and sodium borate preservative',
+         'Boric acid, sodium formate and sodium borate preservative'),
+        ('Ethylparaben, sodium propionate and chlorhexidine preservative',
+         'Ethylparaben, sodium propionate and chlorhexidine preservative'),
+        ('K2EDTA', 'K2EDTA'),
+        ('K3EDTA', 'K3EDTA'),
+        ('lithium heparin', 'lithium heparin'),
+        ('na', 'na'),
+        ('NaFl/Na2EDTA', 'NaFl/Na2EDTA'),
+        ('No additive', 'No additive'),
+        ('sodium citrate', 'sodium citrate'),
+        ('sodium fluoride', 'sodium fluoride'),
+        ('sodium fluoride, Na2EDTA', 'sodium fluoride, Na2EDTA'),
+        ('sodium fluoride, potassium oxalate', 'sodium fluoride, potassium oxalate'),
+        ('sodium heparin', 'sodium heparin'),
+        ('sodium polyanetholesulfonate', 'sodium polyanetholesulfonate'),
+    )
+
+    code = models.CharField(max_length=25)
+    material = models.CharField(max_length=12, choices=MATERIAL, default='na')
+    description = models.TextField(max_length=300)
+    type = models.TextField(max_length=60, choices=TYPE)
+    cap = models.CharField(max_length=60, choices=CAP, default='na')
+    dimension = JSONField(default=dict)
+    volume = JSONField(default=dict)
+    age = JSONField(default=dict)
+    additive = models.CharField(max_length=80, default='na')
+    note = models.TextField(null=True)
+    specimen = models.ManyToManyField(Specimen)
 
     class Meta:
         indexes = [models.Index(fields=['code'])]
 
 
-class Additive(models.Model):
-    code = models.CharField(primary_key=True, max_length=6)
-    display = models.CharField(max_length=255)
-    comment = models.CharField(max_length=255)
-    specimen_container = models.ForeignKey(SpecimenContainerLookup, related_name='additives', on_delete=models.CASCADE)
+# class DeviceLookup(models.Model):
+#     STATUS = (
+#         ('active', 'Active'),
+#         ('inactive', 'Inactive'),
+#         ('entered-in-error', 'Entered in error'),
+#         ('unknown', 'Unknown')
+#     )
+#
+#     REASON = (
+#         ('online', 'Active'),
+#         ('paused', 'Inactive'),
+#         ('standby', 'Entered in error'),
+#         ('offline', 'Offline'),
+#         ('not-ready', 'Not ready'),
+#         ('hw-disconnect', 'Hardware disconnected'),
+#         ('maintenance', 'Maintenance ongoing'),
+#         ('off', 'Off'),
+#     )
+#
+#     udiCarrier = JSONField()
+#     status = models.CharField(max_length=25, choices=STATUS, default='active')
+#     statusReason = models.CharField(max_length=25, choices=REASON, default='online')
+#     distinctIdentifier = models.CharField(max_length=50)
+#     manufacturer = models.CharField(max_length=25)
+#     manufactureDate = models.DateField()
+#     expirationDate = models.DateField()
+#     lotNumber = models.CharField(max_length=50)
+#     serialNumber = models.CharField(max_length=50)
+#     deviceName = models.CharField(max_length=50)
+#     modelNumber = models.CharField(max_length=50)
+#     partNumber = models.CharField(max_length=50, blank=True, default='')
+#     deviceType = models.IntegerField()
+#     specialization = JSONField()
+#     version = JSONField()
+#     property = JSONField()
+#     owner = models.ForeignKey(Organization, on_delete=models.PROTECT)
+#     contact = models.ForeignKey(ContactPoint, on_delete=models.PROTECT)
+#     location = models.CharField(max_length=25)
+#     url = models.URLField()
+#     note = models.TextField()
+#     safety = models.FilePathField()
+#     manual = models.FilePathField()
+#     tests = models.ManyToManyField(TestDef, through='DeviceTest', through_fields=('device', 'test'))
 
-    def __str__(self):
-        return 'Additive(%s, %s)' % (self.code, self.display)
 
-
-class SpecimenContainer(models.Model):
-    specimenContainer = models.ForeignKey(SpecimenContainerLookup, on_delete=models.PROTECT)
-    typeTested = models.ForeignKey(TypeTested, related_name='specimen_containers', on_delete=models.CASCADE)
-
-
-class DeviceLookup(models.Model):
+class Device(models.Model):
     STATUS = (
         ('active', 'Active'),
         ('inactive', 'Inactive'),
@@ -225,9 +373,35 @@ class DeviceLookup(models.Model):
     note = models.TextField()
     safety = models.FilePathField()
     manual = models.FilePathField()
+    tests = models.ManyToManyField(TestDef, through='DeviceTest', through_fields=('device', 'test'))
 
 
-class ReagentLookup(models.Model):
+class DeviceTest(models.Model):
+    STATUS = (
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('entered-in-error', 'Entered in error'),
+        ('unknown', 'Unknown')
+    )
+
+    REASON = (
+        ('online', 'Active'),
+        ('paused', 'Inactive'),
+        ('standby', 'Entered in error'),
+        ('offline', 'Offline'),
+        ('not-ready', 'Not ready'),
+        ('hw-disconnect', 'Hardware disconnected'),
+        ('maintenance', 'Maintenance ongoing'),
+        ('off', 'Off'),
+    )
+
+    device = models.ForeignKey(Device, related_name='devices', on_delete=models.CASCADE)
+    test = models.ForeignKey(TestDef, related_name='tests', on_delete=models.CASCADE)
+    status = models.CharField(max_length=25, choices=STATUS, default='active')
+    statusReason = models.CharField(max_length=25, choices=REASON, default='online')
+
+
+class Reagent(models.Model):
     REASON = (
         ('obsolete', 'Obsolete'),
         ('defective', 'Defective'),
@@ -241,7 +415,7 @@ class ReagentLookup(models.Model):
     manufacturer = models.CharField(max_length=25)
     unitType = models.CharField(max_length=12)
     unitPerTest = models.IntegerField()
-    device = models.ForeignKey(DeviceLookup, related_name='reagents', on_delete=models.CASCADE)
+    device = models.ManyToManyField(Device)
 
 
 class ReagentLot(models.Model):
@@ -262,9 +436,4 @@ class ReagentLot(models.Model):
     note = models.TextField()
     safety = models.FilePathField()
     manual = models.FilePathField()
-    reagent = models.ForeignKey(ReagentLookup, related_name='reagent_lots', on_delete=models.CASCADE)
-
-
-class Device(models.Model):
-    device = models.ForeignKey(DeviceLookup, on_delete=models.PROTECT)
-    test = models.ForeignKey(TestDef, related_name='devices', on_delete=models.CASCADE)
+    reagent = models.ForeignKey(Reagent, related_name='reagent_lots', on_delete=models.CASCADE)

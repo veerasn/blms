@@ -1,7 +1,6 @@
 from django.db import models
 from django.utils import timezone
 import uuid
-import datetime
 
 
 # Create your models here.
@@ -39,15 +38,15 @@ class Organization(models.Model):
     )
 
     active = models.BooleanField(default=True)
-    type = models.CharField(max_length=5, choices=TYPE)
-    name = models.CharField(max_length=50)
-    purpose = models.CharField(max_length=6, choices=PURPOSE)
+    type = models.CharField(max_length=12, choices=TYPE)
+    name = models.CharField(max_length=255)
+    purpose = models.CharField(max_length=12, choices=PURPOSE)
     addressType = models.CharField(max_length=2, default='PH', choices=ADDRESS_TYPE)
-    text = models.CharField('address', default='', max_length=255)
-    city = models.CharField(default='', max_length=5)
-    district = models.CharField(default='', max_length=5)
-    state = models.CharField(default='', max_length=5)
-    postalCode = models.CharField('post code', default='', max_length=5)
+    text = models.CharField('address', max_length=1000)
+    city = models.CharField(max_length=25)
+    district = models.CharField(max_length=25, null=True)
+    state = models.CharField(max_length=25)
+    postalCode = models.CharField('post code', default='00000', max_length=12)
     country = models.CharField(max_length=2, default='MY')
     manager = models.ForeignKey('self', related_name='composition', on_delete=models.PROTECT, null=True)
 
@@ -133,9 +132,9 @@ class Person(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created = models.DateTimeField(auto_now_add=True)
-    text = models.CharField('full name', max_length=100)
-    family = models.CharField('family or last name', max_length=60, null=True, blank=True)
-    given = models.CharField('given or first name', max_length=60, null=True, blank=True)
+    text = models.CharField('full name', null=True, max_length=120)
+    family = models.CharField('family or last name', max_length=60, null=True)
+    given = models.CharField('given or first name', max_length=60)
     middle = models.CharField('middle name', max_length=60, null=True, blank=True)
     prefix = models.CharField('salutations or honorifics', max_length=20, null=True, blank=True)
     suffix = models.CharField(max_length=20, null=True, blank=True)
@@ -156,8 +155,8 @@ class Person(models.Model):
 
 
 class Practitioner(models.Model):
-    person = models.ForeignKey(Person, related_name='persons', on_delete=models.CASCADE)
-    role = models.ForeignKey(PractitionerRole, related_name='roles', on_delete=models.CASCADE)
+    person = models.ForeignKey(Person, related_name='practitioners', on_delete=models.CASCADE)
+    role = models.ForeignKey(PractitionerRole, related_name='practitioners', on_delete=models.CASCADE)
     startingDate = models.DateField(default=timezone.now)
     terminationDate = models.DateField(null=True, blank=True)
 
@@ -175,7 +174,9 @@ class Identification(models.Model):
         ('NR', 'National registration id'),
         ('PP', 'Passport id'),
         ('MC', 'Medicaid card'),
-        ('HR', 'Hospital registration number')
+        ('HR', 'Hospital registration number'),
+        ('SB', 'US Social Security Number'),
+        ('PRN', 'US National Provider Identifier')
     )
 
     idValue = models.CharField(max_length=30)
@@ -203,11 +204,11 @@ class Address(models.Model):
 
     use = models.CharField(max_length=1, choices=ADDRESS_USE)
     type = models.CharField(max_length=2, choices=ADDRESS_TYPE)
-    text = models.CharField('address', max_length=255)
-    city = models.CharField(max_length=5)
-    district = models.CharField(max_length=5)
-    state = models.CharField(max_length=5)
-    postalCode = models.CharField('post code', max_length=5)
+    text = models.CharField('address', max_length=1000)
+    city = models.CharField(max_length=25)
+    district = models.CharField(max_length=25, null=True)
+    state = models.CharField(max_length=25)
+    postalCode = models.CharField('post code', default='00000', max_length=12)
     country = models.CharField(max_length=2, default='MY')
     person = models.ForeignKey(Person, related_name='addresses', on_delete=models.CASCADE)
 
@@ -221,6 +222,7 @@ class Communication(models.Model):
 class ContactPoint(models.Model):
     CONTACT_POINT_SYS = (
         ('phone', 'phone'),
+        ('mobile', 'mobile'),
         ('fax', 'fax'),
         ('email', 'E-mail'),
         ('url', 'url'),
@@ -232,18 +234,33 @@ class ContactPoint(models.Model):
         ('W', 'work'),
         ('T', 'temporary'),
         ('O', 'old'),
-        ('B', 'billing')
+        ('P', 'personal')
     )
 
-    SYS_TYPE = (
-        ('PO', 'postal'),
-        ('PH', 'physical'),
-        ('BO', 'both')
+    system = models.CharField(max_length=12, choices=CONTACT_POINT_SYS)
+    value = models.CharField(max_length=255)
+    use = models.CharField(max_length=1, choices=SYS_USE)
+    rank = models.PositiveSmallIntegerField()
+    person = models.ForeignKey(Person, related_name='contactpoints', on_delete=models.CASCADE)
+
+
+class OrganizationContactPoint(models.Model):
+    CONTACT_POINT_SYS = (
+        ('phone', 'phone'),
+        ('fax', 'fax'),
+        ('email', 'E-mail'),
+        ('url', 'url'),
+        ('sms', 'sms')
+    )
+
+    SYS_USE = (
+        ('T', 'temporary'),
+        ('O', 'old'),
+        ('B', 'billing'),
+        ('E', 'enquiry'),
     )
 
     system = models.CharField(max_length=5, choices=CONTACT_POINT_SYS)
     value = models.CharField(max_length=255)
-    use = models.CharField(max_length=1, choices=SYS_USE)
-    type = models.CharField(max_length=2, choices=SYS_TYPE)
-    rank = models.PositiveSmallIntegerField()
-    person = models.ForeignKey(Person, related_name='contactpoints', on_delete=models.CASCADE)
+    use = models.CharField(max_length=1, choices=SYS_USE, default='E')
+    organization = models.ForeignKey(Organization, related_name='organization_contact_points', on_delete=models.CASCADE)

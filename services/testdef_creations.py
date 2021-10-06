@@ -3,20 +3,22 @@
 from testdefinitions.models import Loinc, TestDef, TestComposition
 
 
-def create_profile():
+def create_profile(profile):
     """ This will create a new test profile from a dictionary that should be passed in from an UI. The format of the
     object is as in the profile argument. Based on the profile the local testdef and testcomposition tables will be
     updated with a many to many recursive relationship.The function returns x that lists the tests descriptions
     that have included in the profile or None if the profile combination already exists"""
 
-    profile = {
-        "id": "fbc",
-        "panel": [{
-            "id": "57021-8",
-            "test": ["718-7", "4544-3", "789-8", '787-2', '785-6', '786-4', '21000-5', '788-0']
-        },
-        ]
-    }
+    # profile = {
+    #     "id": "fbc",
+    #     "panel": [{
+    #         "id": "57021-8",
+    #         "test": ["718-7", "4544-3", "789-8", '787-2', '785-6', '786-4', '21000-5', '788-0']
+    #     },
+    #     ]
+    # }
+
+    profile = profile
 
     x = []
     loinc = Loinc.objects.all()
